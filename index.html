@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chapaa · Marathon Ticketing Module — Technical Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Google Sans Code is the closest publicly-served Google Sans family on Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,300..800;1,300..800&family=Product+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0c1326;
+    --ink-soft:#39435c;
+    --muted:#737d92;
+    --line:#e7eaf0;
+    --line-soft:#f0f2f6;
+    --paper:#ffffff;
+    --wash:#f7f8fb;
+    --mint:#5fd6a6;
+    --mint-deep:#34b886;
+    --mint-ghost:#eafaf2;
+    --navy:#2f3656;
+    --navy-deep:#222a47;
+    --teal:#16b9c4;
+    --teal-ink:#0d8e98;
+    --amber:#f3a712;
+    --rose:#ff6b6b;
+    --radius:18px;
+    --radius-s:12px;
+    --shadow:0 1px 2px rgba(12,19,38,.04), 0 10px 30px -12px rgba(12,19,38,.12);
+    --shadow-lg:0 30px 60px -24px rgba(12,19,38,.28);
+    --mono:'Google Sans Code', ui-monospace, 'SF Mono', Menlo, monospace;
+    --sans:'Product Sans','Google Sans Code', -apple-system, system-ui, sans-serif;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:var(--sans);
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 90% -10%, rgba(95,214,166,.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 10%, rgba(22,185,196,.08), transparent 55%),
+      var(--wash);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- Layout shell ---------- */
+  .wrap{max-width:1080px; margin:0 auto; padding:0 24px;}
+  .doc{padding:64px 0 120px;}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    background:rgba(255,255,255,.82);
+    backdrop-filter:saturate(140%) blur(12px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar .wrap{display:flex; align-items:center; justify-content:space-between; height:62px;}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700; letter-spacing:-.01em;}
+  .brand .logo{
+    width:30px; height:30px; border-radius:9px;
+    background:linear-gradient(135deg,var(--mint),var(--teal));
+    display:grid; place-items:center; color:#06281e; font-weight:800; font-size:15px;
+    box-shadow:0 6px 14px -6px rgba(22,185,196,.7);
+  }
+  .brand small{font-weight:400; color:var(--muted); font-size:12.5px; letter-spacing:.02em;}
+  .toc-mini{display:flex; gap:22px; font-size:13.5px;}
+  .toc-mini a{color:var(--ink-soft); text-decoration:none;}
+  .toc-mini a:hover{color:var(--teal-ink);}
+  @media(max-width:760px){ .toc-mini{display:none;} }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    background:linear-gradient(160deg,#252c49 0%, #1a2039 60%, #161b30 100%);
+    color:#eef1f8; border-radius:26px; padding:54px 48px 50px;
+    position:relative; overflow:hidden;
+    box-shadow:var(--shadow-lg);
+  }
+  .hero::after{
+    content:""; position:absolute; right:-80px; top:-120px;
+    width:420px; height:420px; border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, rgba(95,214,166,.55), transparent 60%);
+    filter:blur(8px); opacity:.6;
+  }
+  .hero::before{
+    content:""; position:absolute; left:-60px; bottom:-140px;
+    width:360px; height:360px; border-radius:50%;
+    background:radial-gradient(circle at 40% 40%, rgba(22,185,196,.4), transparent 60%);
+    filter:blur(6px); opacity:.5;
+  }
+  .pill{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase;
+    color:#bff0db; background:rgba(95,214,166,.12); border:1px solid rgba(95,214,166,.3);
+    padding:6px 12px; border-radius:999px; position:relative; z-index:2;
+  }
+  .pill .dot{width:7px; height:7px; border-radius:50%; background:var(--mint); box-shadow:0 0 0 4px rgba(95,214,166,.25);}
+  .hero h1{
+    font-size:clamp(30px,4.6vw,46px); line-height:1.08; letter-spacing:-.02em;
+    margin:22px 0 14px; font-weight:700; position:relative; z-index:2;
+  }
+  .hero h1 .accent{
+    background:linear-gradient(100deg,var(--mint),var(--teal));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero p{max-width:620px; color:#c4cbe0; font-size:16.5px; position:relative; z-index:2;}
+  .hero-meta{display:flex; flex-wrap:wrap; gap:26px; margin-top:30px; position:relative; z-index:2;}
+  .hero-meta div{font-size:13px;}
+  .hero-meta .k{color:#8e98b8; font-family:var(--mono); letter-spacing:.04em; font-size:11.5px; text-transform:uppercase;}
+  .hero-meta .v{color:#fff; font-weight:700; font-size:15px; margin-top:3px;}
+
+  /* ---------- Sections ---------- */
+  section{margin-top:60px; scroll-margin-top:80px;}
+  .sec-head{display:flex; align-items:baseline; gap:14px; margin-bottom:6px;}
+  .sec-num{
+    font-family:var(--mono); font-size:13px; color:var(--mint-deep);
+    border:1px solid var(--line); background:var(--paper); padding:3px 9px; border-radius:8px;
+    font-weight:600;
+  }
+  h2{font-size:25px; letter-spacing:-.02em; font-weight:700;}
+  .lead{color:var(--ink-soft); font-size:16px; max-width:760px; margin:10px 0 26px;}
+  h3{font-size:17px; margin:26px 0 12px; letter-spacing:-.01em; font-weight:700;}
+  p{color:var(--ink-soft);}
+  p + p{margin-top:12px;}
+
+  .card{
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    padding:26px; box-shadow:var(--shadow);
+  }
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:18px;}
+  @media(max-width:760px){ .grid-2,.grid-3{grid-template-columns:1fr;} }
+
+  ul.clean{list-style:none; margin:8px 0;}
+  ul.clean li{
+    position:relative; padding-left:26px; margin:9px 0; color:var(--ink-soft); font-size:14.5px;
+  }
+  ul.clean li::before{
+    content:""; position:absolute; left:4px; top:9px; width:9px; height:9px; border-radius:3px;
+    background:linear-gradient(135deg,var(--mint),var(--teal));
+  }
+  .strike{color:var(--muted);}
+  ul.kill li::before{background:#d6dbe5;}
+  ul.kill li{ text-decoration:line-through; text-decoration-color:rgba(180,60,60,.4); color:var(--muted);}
+
+  .tag{display:inline-block; font-family:var(--mono); font-size:11px; padding:3px 8px; border-radius:6px;
+    background:var(--mint-ghost); color:var(--mint-deep); border:1px solid rgba(52,184,134,.25); letter-spacing:.03em;}
+  .tag.rm{background:#fdeeee; color:#c0392b; border-color:rgba(192,57,43,.2);}
+  .tag.new{background:#eef6ff; color:#1565c0; border-color:rgba(21,101,192,.2);}
+
+  /* ---------- Before / After ---------- */
+  .ba{display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;}
+  .ba > div{padding:24px;}
+  .ba .before{background:var(--wash); border-right:1px solid var(--line);}
+  .ba .after{background:var(--paper);}
+  .ba h4{font-size:13px; font-family:var(--mono); letter-spacing:.05em; text-transform:uppercase; margin-bottom:14px;}
+  .ba .before h4{color:var(--muted);}
+  .ba .after h4{color:var(--mint-deep);}
+  @media(max-width:760px){ .ba{grid-template-columns:1fr;} .ba .before{border-right:none; border-bottom:1px solid var(--line);} }
+
+  /* ---------- Phone mockups ---------- */
+  .phones{display:flex; gap:34px; flex-wrap:wrap; justify-content:center; margin-top:8px;}
+  .phone{
+    width:300px; background:#0e1320; border-radius:34px; padding:12px;
+    box-shadow:var(--shadow-lg); flex-shrink:0;
+  }
+  .phone .screen{background:#fff; border-radius:24px; overflow:hidden; position:relative;}
+  .phone .notch{height:24px; display:flex; align-items:center; justify-content:center;}
+  .phone .notch span{width:90px; height:6px; border-radius:6px; background:#0e1320;}
+  .scr-body{padding:0 0 18px;}
+  .scr-bar{background:#0e1320; color:#fff; text-align:center; padding:11px; font-weight:700; font-size:15px;
+    display:flex; align-items:center; justify-content:center; gap:7px;}
+  .scr-bar .b{width:18px;height:18px;border-radius:5px;background:linear-gradient(135deg,var(--mint),var(--teal));display:grid;place-items:center;color:#06281e;font-size:10px;font-weight:800;}
+  .scr-hero{padding:18px 18px 0;}
+  .scr-hero .img{height:120px;border-radius:14px;background:
+      linear-gradient(135deg,#cfeee0,#cdeaf0);
+      display:grid;place-items:center;color:var(--teal-ink);font-size:30px;}
+  .scr-pad{padding:14px 18px 0;}
+  .scr-pad h5{font-size:18px; letter-spacing:-.01em; color:var(--ink); margin-bottom:2px;}
+  .scr-pad .sub{font-size:12.5px; color:var(--muted);}
+  .price-row{display:flex; align-items:flex-end; gap:8px; margin:14px 0 4px;}
+  .price-row .amt{font-size:30px; font-weight:800; letter-spacing:-.02em; color:var(--ink);}
+  .price-row .cur{font-size:13px; color:var(--muted); padding-bottom:6px; font-family:var(--mono);}
+  .fixedtag{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-family:var(--mono);
+    color:var(--mint-deep); background:var(--mint-ghost); padding:4px 8px; border-radius:7px; border:1px solid rgba(52,184,134,.25);}
+  .qty{display:flex; align-items:center; justify-content:space-between; border:1px solid var(--line);
+    border-radius:11px; padding:10px 12px; margin:14px 0;}
+  .qty .lbl{font-size:13px; color:var(--ink-soft); font-weight:700;}
+  .qty .ctrl{display:flex; align-items:center; gap:14px;}
+  .qty .ctrl button{width:28px;height:28px;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:16px;color:var(--ink);cursor:pointer;line-height:1;}
+  .qty .ctrl .n{font-weight:800; font-size:15px; width:18px; text-align:center;}
+  .btn{display:flex; align-items:center; justify-content:center; gap:9px; width:100%;
+    padding:14px; border-radius:13px; font-weight:700; font-size:14.5px; border:none; cursor:pointer; font-family:var(--sans);}
+  .btn-mm{background:linear-gradient(135deg,var(--mint),var(--mint-deep)); color:#06281e; margin-bottom:10px;
+    box-shadow:0 10px 22px -10px rgba(52,184,134,.7);}
+  .btn-card{background:var(--navy); color:#fff;}
+  .btn .ic{font-size:16px;}
+  .scr-foot{padding:14px 18px 0; text-align:center; font-size:11.5px; color:var(--muted);}
+
+  /* multi-tier ticket selection */
+  .tier-label{font-size:11px; font-family:var(--mono); color:var(--muted); letter-spacing:.04em; text-transform:uppercase; margin:16px 0 9px;}
+  .tier{border:1.5px solid var(--line); border-radius:14px; padding:12px 13px; margin-bottom:10px; transition:.2s; background:#fff;}
+  .tier.sel{border-color:var(--mint); background:var(--mint-ghost); box-shadow:0 8px 18px -12px rgba(52,184,134,.5);}
+  .tier .trow{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .tier .tinfo{min-width:0; flex:1;}
+  .tier .tinfo .tnm{font-size:13.5px; font-weight:700; color:var(--ink); display:flex; align-items:center; gap:6px; white-space:nowrap;}
+  .tier .tinfo .tnm .badge{font-size:9px; font-family:var(--mono); background:var(--navy); color:#fff; padding:2px 6px; border-radius:5px; letter-spacing:.04em;}
+  .tier .tinfo .tprice{font-size:12px; color:var(--mint-deep); font-family:var(--mono); margin-top:3px; font-weight:600;}
+  .tier .tinfo .tleft{font-size:10.5px; color:var(--muted); font-family:var(--mono); margin-top:2px;}
+  .tier .tstep{display:flex; align-items:center; gap:11px; flex-shrink:0;}
+  .tier .tstep button{width:26px;height:26px;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:15px;color:var(--ink);cursor:pointer;line-height:1;}
+  .tier .tstep .n{font-weight:800; font-size:14px; width:16px; text-align:center; color:var(--ink);}
+  .tier.muted .tstep .n{color:var(--muted);}
+
+  .order-sum{border-top:1px dashed var(--line); margin-top:6px; padding-top:12px;}
+  .order-sum .line{display:flex; justify-content:space-between; font-size:12.5px; color:var(--ink-soft); margin:5px 0;}
+  .order-sum .line.tot{font-size:15px; color:var(--ink); font-weight:800; margin-top:8px;}
+  .order-sum .line .q{color:var(--muted); font-family:var(--mono); font-size:11px;}
+
+  /* create-event / tier form inputs (in phone) */
+  .frm-label{font-size:11px; font-family:var(--mono); color:var(--muted); letter-spacing:.04em; text-transform:uppercase; margin:15px 0 7px; display:block;}
+  .inp{width:100%; border:1.5px solid var(--line); border-radius:11px; padding:11px 13px; font-size:13.5px; color:var(--ink); background:#fff; font-family:var(--sans);}
+  .inp.ph{color:var(--muted);}
+  .inp-row{display:flex; gap:9px;}
+  .inp-row .grow{flex:1;}
+  .inp-affix{display:flex; align-items:center; border:1.5px solid var(--line); border-radius:11px; overflow:hidden; background:#fff;}
+  .inp-affix input,.inp-affix .val{border:none; padding:11px 13px; font-size:13.5px; color:var(--ink); flex:1; font-family:var(--sans); background:transparent; min-width:0;}
+  .inp-affix .pre,.inp-affix .post{background:var(--wash); color:var(--muted); font-size:12px; font-family:var(--mono); padding:11px 11px; border-left:1px solid var(--line);}
+  .inp-affix .pre{border-left:none; border-right:1px solid var(--line);}
+
+  .tier-edit{border:1.5px solid var(--line); border-radius:14px; padding:13px; margin-bottom:11px; background:var(--wash);}
+  .tier-edit .te-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .tier-edit .te-head .nm{font-size:13.5px; font-weight:700; color:var(--ink);}
+  .tier-edit .te-head .del{font-size:13px; color:var(--rose); cursor:pointer;}
+  .tier-edit .te-grid{display:flex; gap:9px;}
+  .tier-edit .te-grid > *{flex:1;}
+  .add-tier{width:100%; border:1.5px dashed var(--mint-deep); color:var(--mint-deep); background:var(--mint-ghost);
+    border-radius:12px; padding:12px; font-size:13px; font-weight:700; font-family:var(--sans); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px;}
+  .btn-create{background:linear-gradient(135deg,var(--mint),var(--mint-deep)); color:#06281e;}
+
+  /* ---------- Flow diagram (auto-playing, package travels the dotted path) ---------- */
+  .flow{position:relative; padding:20px 0 4px;}
+  .flow-track{display:grid; grid-template-columns:repeat(6,1fr); gap:0; position:relative;}
+  .flow-step{position:relative; text-align:center; padding:0 8px;}
+  .flow-step .node{
+    width:56px; height:56px; border-radius:18px; margin:0 auto 12px; display:grid; place-items:center;
+    background:var(--paper); border:1.5px solid var(--line); font-size:22px; position:relative; z-index:2;
+    box-shadow:var(--shadow); transition:transform .35s cubic-bezier(.34,1.56,.64,1), border-color .35s, background .35s;
+  }
+  .flow-step .num{position:absolute; top:-7px; right:50%; transform:translateX(32px); z-index:3;
+    width:20px; height:20px; border-radius:50%; background:var(--navy); color:#fff;
+    font-size:11px; font-weight:700; display:grid; place-items:center; font-family:var(--mono); transition:background .35s;}
+  .flow-step h6{font-size:13px; margin-bottom:4px; color:var(--ink); font-weight:700;}
+  .flow-step p{font-size:11.5px; color:var(--muted); line-height:1.45;}
+
+  /* dotted connector + travelling package */
+  .flow-line{position:absolute; top:48px; left:8.3%; right:8.3%; height:3px; z-index:1;
+    background-image:radial-gradient(circle, var(--line) 1.6px, transparent 1.6px);
+    background-size:11px 3px; background-repeat:repeat-x; background-position:left center;}
+  .flow-line .fill{position:absolute; left:0; top:50%; transform:translateY(-50%); height:3px; width:0;
+    background:linear-gradient(90deg,var(--mint),var(--teal)); border-radius:3px;
+    transition:width .9s linear; box-shadow:0 0 10px rgba(52,184,134,.5);}
+  .flow-pkg{position:absolute; top:48px; left:8.3%; z-index:4; transform:translate(-50%,-50%);
+    width:30px; height:30px; border-radius:10px;
+    background:linear-gradient(135deg,var(--mint),var(--mint-deep)); color:#06281e;
+    display:grid; place-items:center; font-size:15px;
+    box-shadow:0 8px 18px -6px rgba(52,184,134,.8); transition:left .9s linear; opacity:0;}
+  .flow-pkg.show{opacity:1;}
+  .flow-pkg::after{content:""; position:absolute; inset:-5px; border-radius:14px;
+    background:radial-gradient(circle, rgba(52,184,134,.35), transparent 70%); z-index:-1;}
+
+  @media(max-width:760px){
+    .flow-track{grid-template-columns:1fr 1fr 1fr;}
+    .flow-step{margin-bottom:28px;}
+    .flow-line,.flow-pkg{display:none;}
+  }
+
+  .flow-status{font-family:var(--mono); font-size:12.5px; color:var(--mint-deep); margin-top:26px;
+    display:flex; align-items:center; gap:9px;}
+  .flow-status .live{width:8px; height:8px; border-radius:50%; background:var(--mint);
+    box-shadow:0 0 0 4px rgba(95,214,166,.25); animation:pulse 1.4s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .flow-step.active .node{transform:scale(1.16); border-color:var(--mint); background:#fff;
+    box-shadow:0 16px 32px -12px rgba(52,184,134,.65);}
+  .flow-step.done .node{background:var(--mint-ghost); border-color:rgba(52,184,134,.4);}
+  .flow-step.active .num{background:var(--mint-deep);}
+  .flow-step.done .num{background:var(--mint-deep);}
+
+  /* ---------- Code / schema ---------- */
+  .code{
+    background:#10182b; color:#dfe6f5; border-radius:var(--radius); padding:22px 24px;
+    font-family:var(--mono); font-size:13px; line-height:1.75; overflow-x:auto;
+    box-shadow:var(--shadow);
+  }
+  .code .c{color:#6b88c4;}     /* comment */
+  .code .k{color:#7fe0c0;}     /* keyword */
+  .code .t{color:#f5b873;}     /* type */
+  .code .p{color:#9fb4e8;}     /* punctuation/field */
+  .code .s{color:#f6c0c0;}     /* string */
+  .code .pk{color:#ffd166; font-weight:600;} /* PK / accent */
+
+  /* ---------- Table ---------- */
+  table{width:100%; border-collapse:collapse; font-size:13.5px; overflow:hidden; border-radius:var(--radius);
+    box-shadow:var(--shadow); background:var(--paper);}
+  thead{background:var(--navy); color:#fff;}
+  th{ text-align:left; padding:13px 16px; font-size:12px; font-family:var(--mono); letter-spacing:.04em; font-weight:600;}
+  td{padding:13px 16px; border-top:1px solid var(--line); color:var(--ink-soft);}
+  td code{font-family:var(--mono); font-size:12.5px; background:var(--wash); padding:2px 6px; border-radius:6px; color:var(--ink);}
+  tr:hover td{background:var(--wash);}
+
+  /* ---------- Ticket visual ---------- */
+  .ticket{
+    background:linear-gradient(135deg,#222a47,#2f3656); color:#fff; border-radius:18px; padding:24px;
+    position:relative; overflow:hidden; box-shadow:var(--shadow-lg); max-width:380px;
+  }
+  .ticket::before,.ticket::after{content:""; position:absolute; width:26px; height:26px; border-radius:50%;
+    background:var(--wash); top:50%; transform:translateY(-50%);}
+  .ticket::before{left:-13px;} .ticket::after{right:-13px;}
+  .ticket .perf{position:absolute; left:50%; top:18px; bottom:18px; border-left:2px dashed rgba(255,255,255,.25);}
+  .ticket .row1{display:flex; justify-content:space-between; align-items:flex-start;}
+  .ticket .ev{font-size:11px; font-family:var(--mono); color:#9fb0d8; letter-spacing:.06em; text-transform:uppercase;}
+  .ticket .nm{font-size:18px; font-weight:700; margin-top:4px;}
+  .ticket .code-label{font-size:10.5px; font-family:var(--mono); color:#9fb0d8; letter-spacing:.08em; text-transform:uppercase; margin-top:18px;}
+  .ticket .code-val{font-family:var(--mono); font-size:24px; font-weight:800; letter-spacing:.14em; color:var(--mint); margin-top:4px;}
+  .ticket .qr{width:60px; height:60px; border-radius:10px; background:
+    repeating-linear-gradient(0deg,#fff 0 4px,transparent 4px 8px),
+    repeating-linear-gradient(90deg,#fff 0 4px,transparent 4px 8px); background-color:#1b2238; }
+  .ticket .foot{display:flex; justify-content:space-between; margin-top:18px; font-size:11px; color:#9fb0d8; font-family:var(--mono);}
+
+  /* ---------- Organiser app (in phone) ---------- */
+  .dot-s{width:6px;height:6px;border-radius:50%; background:currentColor;}
+  .status{display:inline-flex; align-items:center; gap:5px; font-size:10px; font-family:var(--mono); padding:3px 8px; border-radius:999px;}
+  .status.paid{background:var(--mint-ghost); color:var(--mint-deep);}
+  .status.pend{background:#fff5e6; color:#b9770e;}
+  .status.used{background:#eef0f4; color:var(--muted);}
+
+  .app-stage{display:flex; gap:40px; align-items:flex-start; flex-wrap:wrap; justify-content:center;}
+  .phone-lg{width:340px; background:#0e1320; border-radius:42px; padding:13px; box-shadow:var(--shadow-lg); flex-shrink:0;}
+  .phone-lg .screen{background:#f5f7fb; border-radius:32px; overflow:hidden; position:relative; min-height:680px;}
+  .phone-lg .notch{height:26px; display:flex; align-items:center; justify-content:center; background:#fff;}
+  .phone-lg .notch span{width:96px; height:6px; border-radius:6px; background:#0e1320;}
+
+  /* app header with gradient */
+  .oa-head{background:linear-gradient(150deg,#222a47,#2f3656 70%,#34406b); color:#fff; padding:18px 20px 22px; position:relative; overflow:hidden;}
+  .oa-head::after{content:""; position:absolute; right:-40px; top:-50px; width:160px; height:160px; border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, rgba(95,214,166,.45), transparent 65%);}
+  .oa-head .top{display:flex; align-items:center; justify-content:space-between; position:relative; z-index:2;}
+  .oa-head .back{font-size:18px; opacity:.85;}
+  .oa-head .live{font-size:10px; font-family:var(--mono); background:rgba(95,214,166,.18); border:1px solid rgba(95,214,166,.35); color:#bff0db; padding:3px 9px; border-radius:999px; display:inline-flex; align-items:center; gap:6px;}
+  .oa-head .live .d{width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 3px rgba(95,214,166,.3);}
+  .oa-head h4{font-size:18px; margin-top:14px; letter-spacing:-.01em; position:relative; z-index:2;}
+  .oa-head .sub{font-size:12px; color:#aeb8d8; margin-top:2px; position:relative; z-index:2;}
+
+  /* floating stat cards */
+  .oa-stats{display:grid; grid-template-columns:1fr 1fr; gap:11px; padding:0 16px; margin-top:-24px; position:relative; z-index:5;}
+  .oa-stat{background:#fff; border-radius:16px; padding:14px 15px; box-shadow:0 12px 26px -16px rgba(12,19,38,.4); border:1px solid var(--line-soft);}
+  .oa-stat .k{font-size:10px; font-family:var(--mono); color:var(--muted); text-transform:uppercase; letter-spacing:.04em; display:flex; align-items:center; gap:6px;}
+  .oa-stat .v{font-size:22px; font-weight:800; color:var(--ink); margin-top:5px; letter-spacing:-.02em;}
+  .oa-stat .v.mint{color:var(--mint-deep);}
+  .oa-stat .delta{font-size:10px; color:var(--mint-deep); font-family:var(--mono); margin-top:2px;}
+
+  /* search bar */
+  .oa-search{margin:16px 16px 6px; display:flex; align-items:center; gap:9px; background:#fff; border:1px solid var(--line); border-radius:13px; padding:11px 14px;}
+  .oa-search .mag{color:var(--muted); font-size:14px;}
+  .oa-search .ph{color:var(--muted); font-size:13px;}
+  .oa-search .filt{margin-left:auto; font-size:11px; font-family:var(--mono); background:var(--mint-ghost); color:var(--mint-deep); padding:3px 8px; border-radius:7px;}
+
+  .oa-section{display:flex; align-items:center; justify-content:space-between; padding:8px 18px 8px;}
+  .oa-section .t{font-size:13px; font-weight:700; color:var(--ink);}
+  .oa-section .a{font-size:11px; color:var(--teal-ink); font-family:var(--mono);}
+
+  /* buyer rows */
+  .oa-list{padding:0 14px 16px; display:flex; flex-direction:column; gap:9px;}
+  .oa-row{background:#fff; border:1px solid var(--line-soft); border-radius:14px; padding:12px 13px; display:flex; align-items:center; gap:11px; box-shadow:0 4px 12px -10px rgba(12,19,38,.3);}
+  .oa-row .av{width:38px; height:38px; border-radius:11px; flex-shrink:0; display:grid; place-items:center; font-weight:800; font-size:14px; color:#fff;}
+  .oa-row .av.a1{background:linear-gradient(135deg,#5fd6a6,#34b886);}
+  .oa-row .av.a2{background:linear-gradient(135deg,#16b9c4,#0d8e98);}
+  .oa-row .av.a3{background:linear-gradient(135deg,#f3a712,#e08600);}
+  .oa-row .av.a4{background:linear-gradient(135deg,#8b9be8,#5566c4);}
+  .oa-row .mid{flex:1; min-width:0;}
+  .oa-row .nm{font-size:13.5px; font-weight:700; color:var(--ink);}
+  .oa-row .meta{font-size:10.5px; color:var(--muted); font-family:var(--mono); margin-top:2px; display:flex; align-items:center; gap:7px; flex-wrap:wrap;}
+  .oa-row .meta .code{background:var(--wash); color:var(--ink); padding:1px 6px; border-radius:5px; letter-spacing:.05em; font-weight:600;}
+  .oa-row .right{text-align:right; flex-shrink:0;}
+  .oa-row .qty{font-size:11px; color:var(--muted); font-family:var(--mono); margin-top:5px;}
+
+  /* bottom tab bar */
+  .oa-tabs{position:absolute; left:0; right:0; bottom:0; background:#fff; border-top:1px solid var(--line); display:flex; padding:10px 8px 16px;}
+  .oa-tabs .tab{flex:1; text-align:center; font-size:9.5px; font-family:var(--mono); color:var(--muted);}
+  .oa-tabs .tab .i{font-size:18px; display:block; margin-bottom:3px; opacity:.5;}
+  .oa-tabs .tab.on{color:var(--mint-deep);} .oa-tabs .tab.on .i{opacity:1;}
+  .oa-tabs .scan{flex:0 0 auto; width:50px; height:50px; border-radius:16px; background:linear-gradient(135deg,var(--mint),var(--mint-deep)); display:grid; place-items:center; font-size:21px; margin:-22px 6px 0; box-shadow:0 12px 24px -8px rgba(52,184,134,.7);}
+
+  /* side feature notes next to phone */
+  .oa-notes{flex:1; min-width:260px; max-width:380px; padding-top:8px;}
+  .oa-note{display:flex; gap:14px; padding:16px 0; border-bottom:1px dashed var(--line);}
+  .oa-note:last-child{border-bottom:none;}
+  .oa-note .bub{width:42px; height:42px; border-radius:13px; flex-shrink:0; display:grid; place-items:center; font-size:19px; background:var(--mint-ghost); border:1px solid rgba(52,184,134,.2);}
+  .oa-note h4{font-size:14.5px; margin-bottom:3px;}
+  .oa-note p{font-size:13px; color:var(--ink-soft); margin:0;}
+  @media(max-width:760px){ .app-stage{gap:28px;} .oa-notes{max-width:none;} }
+
+  /* ---------- WhatsApp / SMS preview ---------- */
+  .comms{display:grid; grid-template-columns:1fr 1fr; gap:22px;}
+  @media(max-width:760px){ .comms{grid-template-columns:1fr;} }
+  .wa{border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow);
+    background:#e6ddd4; /* whatsapp paper */ }
+  .wa .whead{display:flex; align-items:center; gap:11px; padding:12px 16px; background:#075e54; color:#fff;}
+  .wa .whead .av{width:34px; height:34px; border-radius:50%; background:#25d366; display:grid; place-items:center; font-size:17px;}
+  .wa .whead .nm{font-weight:700; font-size:14px;}
+  .wa .whead .st{font-size:11px; color:#bfe9d9;}
+  .wa .wbody{padding:16px; background-image:
+      radial-gradient(rgba(0,0,0,.018) 1px, transparent 1px); background-size:18px 18px; min-height:240px;}
+  .wa .wmsg{background:#dcf8c6; border-radius:12px 12px 4px 12px; padding:12px 13px; max-width:88%; margin-left:auto;
+    box-shadow:0 1px 1px rgba(0,0,0,.08); font-size:13px; color:#0a2218; line-height:1.5;}
+  .wa .wmsg .tk{background:#fff; border:1px solid #cdeac0; border-radius:10px; padding:9px 11px; margin:9px 0; display:flex; align-items:center; gap:10px;}
+  .wa .wmsg .tk .qr{width:38px;height:38px;border-radius:7px;flex-shrink:0;background:
+      repeating-linear-gradient(0deg,#0a2218 0 3px,transparent 3px 6px),
+      repeating-linear-gradient(90deg,#0a2218 0 3px,transparent 3px 6px); background-color:#fff;}
+  .wa .wmsg .tk .cd{font-family:var(--mono); font-weight:800; font-size:15px; letter-spacing:.08em; color:#0a2218;}
+  .wa .wmsg .tk .ev{font-size:10.5px; color:#5b7a64; font-family:var(--mono);}
+  .wa .wmsg .btn-wa{display:block; text-align:center; background:#25d366; color:#fff; font-weight:700; font-size:12.5px;
+    padding:9px; border-radius:8px; margin-top:8px; text-decoration:none;}
+  .wa .wmsg .ts{font-size:10px; color:#5b7a64; text-align:right; margin-top:5px; font-family:var(--mono);}
+  .sms{border:1px solid var(--line); border-radius:var(--radius); padding:18px; background:var(--wash); box-shadow:var(--shadow);}
+  .sms .bubble{background:#fff; border:1px solid var(--line); border-radius:14px 14px 14px 4px; padding:14px 16px; font-size:13px; color:var(--ink); line-height:1.55; box-shadow:0 4px 10px -8px rgba(0,0,0,.3);}
+  .sms .bubble .lnk{color:var(--teal-ink); word-break:break-all;}
+  .sms .meta{font-size:11px; color:var(--muted); font-family:var(--mono); margin-top:8px;}
+  .sms code{font-family:var(--mono); background:#eef6f3; color:var(--mint-deep); padding:1px 5px; border-radius:5px;}
+  .sms .head{display:flex; align-items:center; gap:9px; margin-bottom:13px;}
+  .sms .head .ic{width:30px;height:30px;border-radius:9px;background:var(--navy);color:#fff;display:grid;place-items:center;font-size:15px;}
+  .sms .head .t{font-weight:700; font-size:13.5px; color:var(--ink);}
+  .sms .head .s{font-size:11px; color:var(--muted); font-family:var(--mono);}
+
+  /* ---------- API rows ---------- */
+  .api{display:flex; align-items:center; gap:14px; padding:14px 16px; border:1px solid var(--line); border-radius:var(--radius-s); margin:10px 0; background:var(--paper); box-shadow:var(--shadow);}
+  .method{font-family:var(--mono); font-size:11px; font-weight:700; padding:4px 9px; border-radius:7px; flex-shrink:0;}
+  .method.get{background:#e8f4ff; color:#1565c0;}
+  .method.post{background:var(--mint-ghost); color:var(--mint-deep);}
+  .api .path{font-family:var(--mono); font-size:13px; color:var(--ink); flex-shrink:0;}
+  .api .desc{font-size:12.5px; color:var(--muted); margin-left:auto; text-align:right;}
+  @media(max-width:600px){ .api{flex-wrap:wrap;} .api .desc{margin-left:0; text-align:left; width:100%;} }
+
+  /* ---------- Callout ---------- */
+  .note{display:flex; gap:14px; padding:18px 20px; border-radius:var(--radius-s); background:var(--mint-ghost); border:1px solid rgba(52,184,134,.25); margin:18px 0;}
+  .note .ico{font-size:20px; flex-shrink:0;}
+  .note p{color:#15694e; font-size:13.5px; margin:0;}
+
+  footer{margin-top:80px; padding-top:30px; border-top:1px solid var(--line); color:var(--muted); font-size:13px; text-align:center;}
+  footer .mono{font-family:var(--mono); font-size:12px;}
+</style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<div class="topbar">
+  <div class="wrap">
+    <div class="brand"><span class="logo">C</span> chapaa <small>· Ticketing Module Spec</small></div>
+    <nav class="toc-mini">
+      <a href="#overview">Overview</a>
+      <a href="#screens">Screens</a>
+      <a href="#create">Create</a>
+      <a href="#flow">Purchase flow</a>
+      <a href="#data">Data model</a>
+      <a href="#comms">WhatsApp / SMS</a>
+      <a href="#dash">Owner view</a>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap doc">
+
+  <!-- ===== HERO ===== -->
+  <header class="hero">
+    <span class="pill"><span class="dot"></span> Product Spec · v0.1 Draft</span>
+    <h1>Events Ticket <span class="accent">Module.</span></h1>
+    <p>A focused extension to the existing Chapaa campaign link that turns a fundraising page into a fixed-price ticket sale — starting with the Jerusalem Children's Home Marathon 2026. Each purchase issues unique, verifiable ticket codes delivered by self-sufficient WhatsApp & SMS, with a public ticket page and an owner dashboard for attendee management.</p>
+    <div class="hero-meta">
+      <div><div class="k">Pilot event</div><div class="v">JCH Marathon · Season 5</div></div>
+      <div><div class="k">Codes / purchase</div><div class="v">6 unique tickets</div></div>
+      <div><div class="k">Channels</div><div class="v">WhatsApp · SMS · Public link</div></div>
+      <div><div class="k">Payments</div><div class="v">Mobile Money · Card</div></div>
+    </div>
+  </header>
+
+  <!-- ===== 1. OVERVIEW ===== -->
+  <section id="overview">
+    <div class="sec-head"><span class="sec-num">01</span><h2>What changes</h2></div>
+    <p class="lead">A ticket campaign reuses the existing public campaign link structure but behaves differently from a donation campaign. The page no longer asks "how much?" — the price is fixed and the user chooses <em>how many</em> tickets.</p>
+
+    <div class="ba">
+      <div class="before">
+        <h4>Crowdfunding page (today)</h4>
+        <ul class="clean kill">
+          <li>Open "amount raised" + % funded + goal bar</li>
+          <li>Variable contribution amount entered by donor</li>
+          <li><strong>Contribute</strong> button</li>
+          <li><strong>Pledge</strong> button</li>
+          <li><strong>Open App</strong> button</li>
+          <li>No record issued back to the contributor</li>
+        </ul>
+      </div>
+      <div class="after">
+        <h4>Ticket page (new)</h4>
+        <ul class="clean">
+          <li>One or more ticket tiers, each at its own fixed price <span class="tag new">tiers</span></li>
+          <li>Per-tier quantity steppers instead of a free amount</li>
+          <li>Live order summary = Σ (tier price × qty)</li>
+          <li><strong>Pay with Mobile Money</strong> button <span class="tag new">new</span></li>
+          <li><strong>Pay with Card · Selcom</strong> button <span class="tag new">new</span></li>
+          <li>Issues one unique code per ticket purchased <span class="tag new">new</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="note">
+      <span class="ico">💡</span>
+      <p><strong>Reuse, don't rebuild.</strong> The campaign type field gains a value <code>ticket</code>. The renderer branches on type: <code>donation</code> keeps the current UI; <code>ticket</code> shows the fixed-price purchase flow described here. The shared link format (<code>/c/{slug}</code>) is unchanged.</p>
+    </div>
+  </section>
+
+  <!-- ===== 2. SCREENS ===== -->
+  <section id="screens">
+    <div class="sec-head"><span class="sec-num">02</span><h2>The ticket page</h2></div>
+    <p class="lead">Same visual language as the current campaign card. The progress/goal block is replaced by a list of ticket tiers — an event can offer several (5KM, 10KM, 21KM…) each at its own fixed price. The buyer sets a quantity per tier, sees a live order summary, and pays with one of the two methods.</p>
+
+    <div class="phones">
+      <!-- Phone: ticket landing -->
+      <div class="phone">
+        <div class="screen">
+          <div class="notch"><span></span></div>
+          <div class="scr-body">
+            <div class="scr-bar"><span class="b">C</span> chapaa</div>
+            <div class="scr-hero"><div class="img">🏃‍♀️🏃</div></div>
+            <div class="scr-pad">
+              <h5>JCH Marathon 2026 — Season 5</h5>
+              <div class="sub">Jerusalem Children's Home · Dar es Salaam</div>
+
+              <div class="tier-label">Choose your tickets</div>
+
+              <div class="tier sel">
+                <div class="trow">
+                  <div class="tinfo">
+                    <div class="tnm">5KM Fun Run <span class="badge">POPULAR</span></div>
+                    <div class="tprice">25,000 TZS each</div>
+                    <div class="tleft">312 left</div>
+                  </div>
+                  <div class="tstep"><button>−</button><span class="n">2</span><button>+</button></div>
+                </div>
+              </div>
+
+              <div class="tier muted">
+                <div class="trow">
+                  <div class="tinfo">
+                    <div class="tnm">10KM Race</div>
+                    <div class="tprice">30,000 TZS each</div>
+                    <div class="tleft">148 left</div>
+                  </div>
+                  <div class="tstep"><button>−</button><span class="n">0</span><button>+</button></div>
+                </div>
+              </div>
+
+              <div class="tier muted">
+                <div class="trow">
+                  <div class="tinfo">
+                    <div class="tnm">21KM Half Marathon</div>
+                    <div class="tprice">50,000 TZS each</div>
+                    <div class="tleft">61 left</div>
+                  </div>
+                  <div class="tstep"><button>−</button><span class="n">1</span><button>+</button></div>
+                </div>
+              </div>
+
+              <div class="order-sum">
+                <div class="line"><span>5KM Fun Run <span class="q">× 2</span></span><span>50,000</span></div>
+                <div class="line"><span>21KM Half <span class="q">× 1</span></span><span>50,000</span></div>
+                <div class="line tot"><span>Total · 3 tickets</span><span>100,000 TZS</span></div>
+              </div>
+
+              <div style="margin-top:14px"></div>
+              <button class="btn btn-mm"><span class="ic">📱</span> Pay with Mobile Money</button>
+              <button class="btn btn-card"><span class="ic">💳</span> Pay with Card · Selcom</button>
+            </div>
+            <div class="scr-foot">Tickets sent via WhatsApp & SMS instantly after payment.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phone: confirmation -->
+      <div class="phone">
+        <div class="screen">
+          <div class="notch"><span></span></div>
+          <div class="scr-body">
+            <div class="scr-bar"><span class="b">C</span> chapaa</div>
+            <div style="padding:30px 20px 6px; text-align:center;">
+              <div style="width:64px;height:64px;border-radius:50%;margin:0 auto 14px;background:var(--mint-ghost);display:grid;place-items:center;font-size:30px;">✅</div>
+              <h5 style="font-size:19px;color:var(--ink)">Payment received</h5>
+              <p style="font-size:13px;color:var(--muted);margin-top:4px;">3 tickets · 100,000 TZS</p>
+            </div>
+            <div style="padding:8px 18px 0;">
+              <div class="ticket" style="max-width:none;transform:scale(.92);">
+                <div class="perf"></div>
+                <div class="row1">
+                  <div><div class="ev">JCH Marathon 2026</div><div class="nm">5KM Run</div></div>
+                  <div class="qr"></div>
+                </div>
+                <div class="code-label">Ticket code</div>
+                <div class="code-val">7K9-QX2</div>
+                <div class="foot"><span>#1 of 3</span><span>NON-TRANSFERABLE</span></div>
+              </div>
+            </div>
+            <div class="scr-foot" style="padding-top:14px;">Sent to WhatsApp & SMS · <span style="color:var(--teal-ink)">View all tickets →</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 3. CREATE TICKETS ===== -->
+  <section id="create">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Creating tickets (organiser)</h2></div>
+    <p class="lead">A simple in-app form where the organiser names the event, sets the date, and adds one or more ticket tiers — each with a name, price and optional capacity. Saving publishes the public link buyers will use.</p>
+
+    <div class="app-stage">
+      <!-- Phone: create event + tiers form -->
+      <div class="phone-lg">
+        <div class="screen">
+          <div class="notch"><span></span></div>
+
+          <div class="oa-head">
+            <div class="top">
+              <span class="back">‹</span>
+              <span class="live" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#dfe6f5;">New event</span>
+            </div>
+            <h4>Create tickets</h4>
+            <div class="sub">Set up your event & its ticket tiers</div>
+          </div>
+
+          <div style="padding:16px 16px 90px;">
+            <label class="frm-label">Event name</label>
+            <input class="inp" value="JCH Marathon 2026 — Season 5">
+
+            <label class="frm-label">Event date</label>
+            <div class="inp-affix"><span class="pre">📅</span><span class="val">Sat, 18 July 2026</span></div>
+
+            <label class="frm-label">Location</label>
+            <input class="inp ph" value="Dar es Salaam, Tanzania">
+
+            <label class="frm-label" style="margin-top:22px;">Ticket tiers</label>
+
+            <div class="tier-edit">
+              <div class="te-head"><span class="nm">Tier 1</span><span class="del">🗑 Remove</span></div>
+              <input class="inp" value="5KM Fun Run" style="margin-bottom:9px;">
+              <div class="te-grid">
+                <div class="inp-affix"><span class="pre">TZS</span><span class="val">25,000</span></div>
+                <div class="inp-affix"><span class="val">500</span><span class="post">cap</span></div>
+              </div>
+            </div>
+
+            <div class="tier-edit">
+              <div class="te-head"><span class="nm">Tier 2</span><span class="del">🗑 Remove</span></div>
+              <input class="inp" value="10KM Race" style="margin-bottom:9px;">
+              <div class="te-grid">
+                <div class="inp-affix"><span class="pre">TZS</span><span class="val">30,000</span></div>
+                <div class="inp-affix"><span class="val">300</span><span class="post">cap</span></div>
+              </div>
+            </div>
+
+            <div class="tier-edit">
+              <div class="te-head"><span class="nm">Tier 3</span><span class="del">🗑 Remove</span></div>
+              <input class="inp" value="21KM Half Marathon" style="margin-bottom:9px;">
+              <div class="te-grid">
+                <div class="inp-affix"><span class="pre">TZS</span><span class="val">50,000</span></div>
+                <div class="inp-affix"><span class="val">100</span><span class="post">cap</span></div>
+              </div>
+            </div>
+
+            <button class="add-tier">＋ Add another tier</button>
+
+            <div style="margin-top:18px;"></div>
+            <button class="btn btn-create">Publish &amp; get link</button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Field notes beside the form -->
+      <div class="oa-notes">
+        <div class="oa-note">
+          <div class="bub">🏷️</div>
+          <div><h4>Name &amp; price per tier</h4><p>Each tier is one row — a name (e.g. "10KM Race") and a fixed price. Add as many as the event needs.</p></div>
+        </div>
+        <div class="oa-note">
+          <div class="bub">🎚️</div>
+          <div><h4>Optional capacity</h4><p>Set a stock cap per tier to show "X left" and auto-close it when sold out. Leave blank for unlimited.</p></div>
+        </div>
+        <div class="oa-note">
+          <div class="bub">🔗</div>
+          <div><h4>Publish → shareable link</h4><p>Saving creates the tiers and returns the public <code>/c/{slug}</code> link to share on WhatsApp, posters &amp; socials.</p></div>
+        </div>
+        <div class="oa-note">
+          <div class="bub">✏️</div>
+          <div><h4>Editable later</h4><p>Prices and capacity can be edited after launch. Tickets already sold keep their original <code>price_paid</code>.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Minimum required inputs</h3>
+    <table>
+      <thead><tr><th>Input</th><th>Field</th><th>Required</th></tr></thead>
+      <tbody>
+        <tr><td>Event name</td><td><code>campaigns.title</code></td><td>Yes</td></tr>
+        <tr><td>Event date</td><td><code>campaigns.event_date</code></td><td>Yes</td></tr>
+        <tr><td>Location</td><td><code>campaigns.location</code></td><td>Optional</td></tr>
+        <tr><td>Tier name</td><td><code>ticket_tiers.name</code></td><td>Yes (≥1 tier)</td></tr>
+        <tr><td>Tier price</td><td><code>ticket_tiers.price</code></td><td>Yes</td></tr>
+        <tr><td>Tier capacity</td><td><code>ticket_tiers.capacity</code></td><td>Optional</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ===== 4. PURCHASE FLOW (animated) ===== -->
+  <section id="flow">
+    <div class="sec-head"><span class="sec-num">04</span><h2>Purchase flow</h2></div>
+    <p class="lead">End-to-end journey from opening the link to receiving tickets. The package below travels each connected step automatically, looping continuously.</p>
+
+    <div class="card">
+      <div class="flow">
+        <div class="flow-line"><div class="fill" id="flowFill"></div></div>
+        <div class="flow-pkg" id="flowPkg">📦</div>
+        <div class="flow-track" id="flowTrack">
+          <div class="flow-step" data-i="0">
+            <div class="node">🔗</div><div class="num">1</div>
+            <h6>Open link</h6><p>User taps shared link or scans QR</p>
+          </div>
+          <div class="flow-step" data-i="1">
+            <div class="node">🎟️</div><div class="num">2</div>
+            <h6>Pick tickets</h6><p>Choose tiers & quantities</p>
+          </div>
+          <div class="flow-step" data-i="2">
+            <div class="node">💳</div><div class="num">3</div>
+            <h6>Choose payment</h6><p>Mobile Money or Card</p>
+          </div>
+          <div class="flow-step" data-i="3">
+            <div class="node">⚙️</div><div class="num">4</div>
+            <h6>Process & verify</h6><p>Transaction confirmed by gateway</p>
+          </div>
+          <div class="flow-step" data-i="4">
+            <div class="node">🧾</div><div class="num">5</div>
+            <h6>Generate codes</h6><p>N unique tickets created & stored</p>
+          </div>
+          <div class="flow-step" data-i="5">
+            <div class="node">📨</div><div class="num">6</div>
+            <h6>Deliver</h6><p>WhatsApp + SMS with public link</p>
+          </div>
+        </div>
+      </div>
+      <div class="flow-status"><span class="live"></span><span id="flowStatus">Opening link…</span></div>
+    </div>
+
+    <h3>Payment branch detail</h3>
+    <div class="grid-2">
+      <div class="card">
+        <div class="tag">📱 Mobile Money</div>
+        <ul class="clean" style="margin-top:12px;">
+          <li>User enters MSISDN (or it's prefilled from account)</li>
+          <li>USSD push / STK prompt to the phone</li>
+          <li>User approves with mobile-money PIN on device</li>
+          <li>Gateway webhook confirms → transaction marked <code>paid</code></li>
+          <li>Supports M-Pesa, <strong>Mixx by Yas</strong> (formerly Tigo Pesa), Airtel Money, Halopesa</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="tag">💳 Card Payment · via Selcom</div>
+        <ul class="clean" style="margin-top:12px;">
+          <li>Card payments run on <strong>Selcom infrastructure</strong></li>
+          <li>Selcom hosted card form (PCI-scope stays with Selcom)</li>
+          <li>3-D Secure challenge where required</li>
+          <li>Authorise → capture, then Selcom webhook → <code>paid</code></li>
+          <li>Visa / Mastercard</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="note">
+      <span class="ico">🔐</span>
+      <p>Ticket codes are generated <strong>only after</strong> the payment webhook confirms a settled transaction — never on the client. This prevents issuing valid tickets for failed or pending payments.</p>
+    </div>
+  </section>
+
+  <!-- ===== 4. DATA MODEL ===== -->
+  <section id="data">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Data model</h2></div>
+    <p class="lead">Two new tables: <code>ticket_tiers</code> defines the priced options an event offers (5KM, 10KM…), and <code>tickets</code> holds each issued ticket, linked to a tier, a buyer and the transaction that paid for it. Every ticket carries its own unique, shareable code.</p>
+
+    <h3>Relationships</h3>
+    <div class="code">
+<span class="c">// An event (campaign) offers several priced tiers</span>
+<span class="t">Campaign</span> <span class="p">1</span> ──< <span class="t">TicketTier</span>          <span class="c">// 5KM @25k, 10KM @30k, 21KM @50k …</span>
+
+<span class="c">// One purchase → one transaction → many tickets, each of a chosen tier</span>
+<span class="t">User</span> <span class="p">1</span> ──< <span class="t">Transaction</span> <span class="p">1</span> ──< <span class="t">Ticket</span>
+<span class="t">TicketTier</span> <span class="p">1</span> ──< <span class="t">Ticket</span>           <span class="c">// ticket inherits its tier's price & name</span>
+<span class="t">Campaign</span> <span class="p">1</span> ──< <span class="t">Ticket</span>              <span class="c">// denormalised for fast owner queries</span>
+    </div>
+
+    <h3>ticket_tiers <span class="tag new">new table</span></h3>
+    <div class="code">
+<span class="k">CREATE TABLE</span> ticket_tiers <span class="p">(</span>
+  <span class="pk">id</span>           <span class="t">UUID</span>        <span class="k">PRIMARY KEY</span> <span class="k">DEFAULT</span> gen_random_uuid<span class="p">(),</span>
+  <span class="p">campaign_id</span>  <span class="t">UUID</span>        <span class="k">NOT NULL REFERENCES</span> campaigns<span class="p">(</span>id<span class="p">),</span>
+  <span class="p">name</span>         <span class="t">VARCHAR</span>     <span class="k">NOT NULL</span>,            <span class="c">// "5KM Fun Run"</span>
+  <span class="p">price</span>        <span class="t">BIGINT</span>      <span class="k">NOT NULL</span>,            <span class="c">// fixed price, in cents (25000_00)</span>
+  <span class="p">currency</span>     <span class="t">CHAR(3)</span>     <span class="k">DEFAULT</span> <span class="s">'TZS'</span>,
+  <span class="p">capacity</span>     <span class="t">INT</span>,                          <span class="c">// null = unlimited; else stock cap</span>
+  <span class="p">sold_count</span>   <span class="t">INT</span>         <span class="k">DEFAULT</span> <span class="p">0</span>,            <span class="c">// for "X left" + sold-out logic</span>
+  <span class="p">max_per_order</span> <span class="t">INT</span>        <span class="k">DEFAULT</span> <span class="p">10</span>,           <span class="c">// per-tier purchase limit</span>
+  <span class="p">sort_order</span>   <span class="t">INT</span>         <span class="k">DEFAULT</span> <span class="p">0</span>,
+  <span class="p">is_active</span>    <span class="t">BOOLEAN</span>     <span class="k">DEFAULT</span> <span class="k">true</span>
+<span class="p">);</span>
+    </div>
+
+    <h3>tickets <span class="tag new">new table</span></h3>
+    <div class="code">
+<span class="k">CREATE TABLE</span> tickets <span class="p">(</span>
+  <span class="pk">id</span>              <span class="t">UUID</span>        <span class="k">PRIMARY KEY</span> <span class="k">DEFAULT</span> gen_random_uuid<span class="p">(),</span>
+  <span class="p">ticket_code</span>     <span class="t">VARCHAR(12)</span> <span class="k">NOT NULL UNIQUE</span>,   <span class="c">// e.g. 7K9-QX2 (human-readable)</span>
+  <span class="p">tier_id</span>         <span class="t">UUID</span>        <span class="k">NOT NULL REFERENCES</span> ticket_tiers<span class="p">(</span>id<span class="p">),</span>
+  <span class="p">transaction_id</span>  <span class="t">UUID</span>        <span class="k">NOT NULL REFERENCES</span> transactions<span class="p">(</span>id<span class="p">),</span>
+  <span class="p">user_id</span>         <span class="t">UUID</span>        <span class="k">NOT NULL REFERENCES</span> users<span class="p">(</span>id<span class="p">),</span>
+  <span class="p">campaign_id</span>     <span class="t">UUID</span>        <span class="k">NOT NULL REFERENCES</span> campaigns<span class="p">(</span>id<span class="p">),</span>
+  <span class="p">price_paid</span>      <span class="t">BIGINT</span>      <span class="k">NOT NULL</span>,            <span class="c">// snapshot of tier price at purchase</span>
+  <span class="p">holder_name</span>     <span class="t">VARCHAR</span>,                       <span class="c">// optional per-ticket name</span>
+  <span class="p">public_token</span>    <span class="t">VARCHAR(32)</span> <span class="k">NOT NULL UNIQUE</span>,   <span class="c">// for the public view URL</span>
+  <span class="p">status</span>          <span class="t">VARCHAR</span>     <span class="k">DEFAULT</span> <span class="s">'valid'</span>,    <span class="c">// valid | used | void</span>
+  <span class="p">checked_in_at</span>   <span class="t">TIMESTAMPTZ</span>,                   <span class="c">// set when scanned at gate</span>
+  <span class="p">created_at</span>      <span class="t">TIMESTAMPTZ</span> <span class="k">DEFAULT</span> now<span class="p">()</span>
+<span class="p">);</span>
+    </div>
+
+    <h3>Field reference</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Purpose</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>tier_id</code></td><td>Which priced option this ticket belongs to</td><td>Drives the name & price shown on the ticket</td></tr>
+        <tr><td><code>price_paid</code></td><td>Price snapshot at purchase time</td><td>Stays correct even if the tier price changes later</td></tr>
+        <tr><td><code>ticket_code</code></td><td>Short code printed on the ticket & shown to staff at the gate</td><td>Unique, uppercase, no ambiguous chars (no O/0, I/1)</td></tr>
+        <tr><td><code>public_token</code></td><td>Random opaque token used in the public link, <em>not</em> the code</td><td>Keeps the gate code from leaking in URLs</td></tr>
+        <tr><td><code>status</code></td><td>Lifecycle of a single ticket</td><td><span class="status used"><span class="dot-s"></span>valid → used → void</span></td></tr>
+        <tr><td><code>checked_in_at</code></td><td>Single-use enforcement at the event gate</td><td>Re-scan of a <code>used</code> ticket is flagged</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Code generation rules</h3>
+    <ul class="clean">
+      <li>For each tier in the order, generate one ticket per unit, all inside a single DB transaction (atomic — all or nothing).</li>
+      <li><code>ticket_code</code>: 7 chars from a 32-symbol alphabet (Crockford base32, excludes I/L/O/U) grouped <code>XXX-XXX</code> for readability.</li>
+      <li>Collision check on insert; retry on the rare unique-constraint violation.</li>
+      <li><code>public_token</code>: 22+ chars of cryptographically random URL-safe text.</li>
+    </ul>
+
+    <h3>Public ticket link</h3>
+    <div class="code">
+<span class="c">// Self-sufficient — no login needed to view a single ticket</span>
+https://chapaa.app<span class="p">/t/</span><span class="pk">{public_token}</span>
+
+<span class="c">// Shows: event name, date, holder, ticket_code, QR, status, "add to wallet"</span>
+    </div>
+  </section>
+
+  <!-- ===== 5. WHATSAPP / SMS ===== -->
+  <section id="comms">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Delivery: WhatsApp & SMS</h2></div>
+    <p class="lead">Both messages are self-sufficient — a recipient can act on either one without the other. WhatsApp carries the rich ticket cards, QR and a "view all" button; SMS carries the code(s) plus a short public link as a fallback for any phone.</p>
+
+    <div class="comms">
+      <div class="wa">
+        <div class="whead">
+          <div class="av">C</div>
+          <div><div class="nm">Chapaa Tickets</div><div class="st">Business account · online</div></div>
+        </div>
+        <div class="wbody">
+          <div class="wmsg">
+            Payment confirmed ✅ Here are your <strong>2 tickets</strong> for the JCH Marathon 2026 (Season 5), July · Dar es Salaam. Total paid: <strong>50,000 TZS</strong>.
+            <div class="tk">
+              <div class="qr"></div>
+              <div><div class="ev">JCH Marathon · 5KM · #1</div><div class="cd">7K9-QX2</div></div>
+            </div>
+            <div class="tk">
+              <div class="qr"></div>
+              <div><div class="ev">JCH Marathon · 5KM · #2</div><div class="cd">4M2-RP8</div></div>
+            </div>
+            Show the QR or code at the gate. Each ticket has its own page.
+            <a class="btn-wa" href="#">🎟️ View all my tickets</a>
+            <div class="ts">09:41 ✓✓</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sms">
+        <div class="head">
+          <div class="ic">💬</div>
+          <div><div class="t">SMS fallback</div><div class="s">works on any phone · no app</div></div>
+        </div>
+        <div class="bubble">
+          Chapaa: Payment confirmed ✅ Your <strong>2 tickets</strong> for JCH Marathon 2026:<br>
+          <code>7K9-QX2</code>, <code>4M2-RP8</code><br><br>
+          View &amp; QR: <span class="lnk">chapaa.app/t/aZ9k…</span><br>
+          Show the QR/code at the gate.
+        </div>
+        <div class="meta">SMS · 1 segment · sent when WhatsApp is undelivered or unavailable</div>
+        <ul class="clean" style="margin-top:18px;">
+          <li>Codes inline so the message works alone</li>
+          <li>One short link opens a wallet of all the buyer's tickets</li>
+          <li>No app install required to view or enter</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="note">
+      <span class="ico">📎</span>
+      <p>WhatsApp delivery uses approved template messages with the ticket details + an <strong>Apple Wallet / Google Wallet</strong> pass link per ticket. The public link is the source of truth — if a pass is deleted, the link still works. SMS is the automatic fallback if WhatsApp fails to deliver.</p>
+    </div>
+  </section>
+
+  <!-- ===== 6. OWNER DASHBOARD ===== -->
+  <section id="dash">
+    <div class="sec-head"><span class="sec-num">07</span><h2>Organiser view (in app)</h2></div>
+    <p class="lead">The campaign owner sees everyone who bought tickets, each unique code, payment status, and check-in state — with search, export and a gate-scan mode.</p>
+
+    <div class="app-stage">
+      <!-- Phone: organiser app -->
+      <div class="phone-lg">
+        <div class="screen">
+          <div class="notch"><span></span></div>
+
+          <div class="oa-head">
+            <div class="top">
+              <span class="back">‹</span>
+              <span class="live"><span class="d"></span>LIVE</span>
+            </div>
+            <h4>JCH Marathon 2026</h4>
+            <div class="sub">Ticket sales · Season 5</div>
+          </div>
+
+          <div class="oa-stats">
+            <div class="oa-stat"><div class="k">🎟️ Tickets sold</div><div class="v">312</div><div class="delta">▲ 18 today</div></div>
+            <div class="oa-stat"><div class="k">💰 Revenue</div><div class="v mint">7.8M</div><div class="delta">TZS collected</div></div>
+            <div class="oa-stat"><div class="k">👤 Buyers</div><div class="v">128</div><div class="delta">unique</div></div>
+            <div class="oa-stat"><div class="k">✅ Checked in</div><div class="v">41</div><div class="delta">at the gate</div></div>
+          </div>
+
+          <div class="oa-search">
+            <span class="mag">🔍</span><span class="ph">Search name, phone or code…</span>
+            <span class="filt">All</span>
+          </div>
+
+          <div class="oa-section">
+            <span class="t">Recent buyers</span>
+            <span class="a">Export ▾</span>
+          </div>
+
+          <div class="oa-list">
+            <div class="oa-row">
+              <div class="av a1">JD</div>
+              <div class="mid">
+                <div class="nm">John Doe</div>
+                <div class="meta"><span class="code">7K9-QX2</span> · Mixx by Yas</div>
+              </div>
+              <div class="right"><span class="status paid"><span class="dot-s"></span>paid</span><div class="qty">×2</div></div>
+            </div>
+            <div class="oa-row">
+              <div class="av a2">AM</div>
+              <div class="mid">
+                <div class="nm">Asha Mwita</div>
+                <div class="meta"><span class="code">4M2-RP8</span> · Card · Selcom</div>
+              </div>
+              <div class="right"><span class="status used"><span class="dot-s"></span>used</span><div class="qty">×1</div></div>
+            </div>
+            <div class="oa-row">
+              <div class="av a3">BJ</div>
+              <div class="mid">
+                <div class="nm">Baraka J.</div>
+                <div class="meta"><span class="code">9TQ-K3F</span> · M-Pesa</div>
+              </div>
+              <div class="right"><span class="status paid"><span class="dot-s"></span>paid</span><div class="qty">×4</div></div>
+            </div>
+            <div class="oa-row">
+              <div class="av a4">NP</div>
+              <div class="mid">
+                <div class="nm">Neema P.</div>
+                <div class="meta"><span class="code">2HX-V7N</span> · Card · Selcom</div>
+              </div>
+              <div class="right"><span class="status pend"><span class="dot-s"></span>pending</span><div class="qty">×1</div></div>
+            </div>
+          </div>
+
+          <div class="oa-tabs">
+            <div class="tab on"><span class="i">📊</span>Sales</div>
+            <div class="tab"><span class="i">🎟️</span>Tickets</div>
+            <div class="scan">📷</div>
+            <div class="tab"><span class="i">📤</span>Export</div>
+            <div class="tab"><span class="i">⚙️</span>Settings</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Feature notes beside the phone -->
+      <div class="oa-notes">
+        <div class="oa-note">
+          <div class="bub">📋</div>
+          <div><h4>Every buyer & code</h4><p>A live list of who bought, how many, each unique ticket code, payment channel and status — paid, pending or used.</p></div>
+        </div>
+        <div class="oa-note">
+          <div class="bub">🔍</div>
+          <div><h4>Search & filter</h4><p>By name, phone, ticket code or status. Handy at the gate when an attendee shows up without their phone.</p></div>
+        </div>
+        <div class="oa-note">
+          <div class="bub">📷</div>
+          <div><h4>Scan mode (centre button)</h4><p>Camera scans a ticket's QR/code, marks it <code>used</code> and blocks duplicate entry in real time.</p></div>
+        </div>
+        <div class="oa-note">
+          <div class="bub">📤</div>
+          <div><h4>Export</h4><p>Download the full attendee + code list as CSV / Excel for reconciliation and an offline backup.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <h3>Owner-side endpoints</h3>
+    <div class="api"><span class="method get">GET</span><span class="path">/campaigns/{id}/tickets</span><span class="desc">Paginated list of all tickets + buyers</span></div>
+    <div class="api"><span class="method get">GET</span><span class="path">/campaigns/{id}/tickets/export</span><span class="desc">CSV / XLSX of attendees & codes</span></div>
+    <div class="api"><span class="method post">POST</span><span class="path">/tickets/{code}/check-in</span><span class="desc">Mark ticket used at the gate</span></div>
+    <div class="api"><span class="method get">GET</span><span class="path">/t/{public_token}</span><span class="desc">Public single-ticket view (no auth)</span></div>
+    <div class="api"><span class="method post">POST</span><span class="path">/campaigns/{id}/tiers</span><span class="desc">Create / update ticket tiers</span></div>
+    <div class="api"><span class="method post">POST</span><span class="path">/campaigns/{id}/purchase</span><span class="desc">Init payment for chosen tiers → issue codes on webhook</span></div>
+  </section>
+
+  <!-- ===== 7. BUILD ORDER ===== -->
+  <section id="rollout">
+    <div class="sec-head"><span class="sec-num">08</span><h2>Suggested build order</h2></div>
+    <div class="grid-2">
+      <div class="card">
+        <h3 style="margin-top:0;">Phase 1 — Sell & issue</h3>
+        <ul class="clean">
+          <li>Add <code>ticket</code> campaign type + <code>ticket_tiers</code> table</li>
+          <li>Organiser create-tickets form (name, date, tiers)</li>
+          <li>Per-tier quantity steppers, order summary, two payment buttons</li>
+          <li><code>tickets</code> table + atomic code generation on webhook</li>
+          <li>WhatsApp + SMS delivery with public link</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0;">Phase 2 — Manage & verify</h3>
+        <ul class="clean">
+          <li>Owner dashboard: list, search, stats, export</li>
+          <li>Public ticket page <code>/t/{token}</code> + wallet passes</li>
+          <li>Gate scan mode + single-use enforcement</li>
+          <li>Refund / void handling</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p class="mono">chapaa · marathon ticketing module · draft spec</p>
+    <p>Pilot: Jerusalem Children's Home Marathon 2026 · Run For A Cause · Season 5 · Dar es Salaam</p>
+  </footer>
+
+</div>
+
+<script>
+  // Auto-playing purchase flow — package travels the dotted path on a loop
+  (function(){
+    const steps = Array.from(document.querySelectorAll('.flow-step'));
+    const fill = document.getElementById('flowFill');
+    const pkg = document.getElementById('flowPkg');
+    const statusEl = document.getElementById('flowStatus');
+    if(!steps.length || !pkg) return;
+    const labels = ['Opening link…','Selecting tickets…','Choosing payment…','Verifying payment…','Generating codes…','Sending WhatsApp & SMS ✓'];
+    const icons  = ['🔗','🎟️','💳','💸','🧾','📨'];
+    const n = steps.length;
+    let i = 0, running = false;
+
+    function pctFor(idx){ return (idx/(n-1))*100; }
+
+    function render(idx){
+      steps.forEach((s,k)=>{
+        s.classList.toggle('active', k===idx);
+        s.classList.toggle('done', k<idx);
+      });
+      fill.style.width = pctFor(idx)+'%';
+      // package sits over the dotted line; line spans 8.3%..91.7% (83.4% wide)
+      const left = 8.3 + (idx/(n-1))*83.4;
+      pkg.style.left = left+'%';
+      pkg.textContent = icons[idx] || '📦';
+      pkg.classList.add('show');
+      statusEl.textContent = labels[idx] || '';
+    }
+
+    function loop(){
+      render(i);
+      i++;
+      if(i >= n){
+        // hold the finished state briefly, then restart
+        setTimeout(()=>{
+          steps.forEach(s=>{s.classList.remove('active'); s.classList.add('done');});
+          fill.style.width='100%';
+          pkg.style.left = (8.3+83.4)+'%';
+          pkg.textContent='✅';
+          statusEl.textContent='Tickets delivered ✓';
+          setTimeout(()=>{
+            // reset for next loop
+            pkg.classList.remove('show');
+            fill.style.transition='none'; pkg.style.transition='none';
+            fill.style.width='0%'; pkg.style.left='8.3%';
+            steps.forEach(s=>s.classList.remove('done','active'));
+            void fill.offsetWidth; // reflow
+            fill.style.transition=''; pkg.style.transition='';
+            i=0; loop();
+          }, 1600);
+        }, 250);
+        return;
+      }
+      setTimeout(loop, 1100);
+    }
+
+    // Start when the flow scrolls into view (and only once)
+    const flowCard = statusEl.closest('section') || document.body;
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        if(e.isIntersecting && !running){ running=true; loop(); io.disconnect(); }
+      });
+    }, {threshold:0.25});
+    io.observe(flowCard);
+  })();
+</script>
+
+</body>
+</html>
